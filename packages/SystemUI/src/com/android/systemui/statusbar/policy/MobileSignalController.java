@@ -19,12 +19,17 @@ import static com.android.settingslib.mobile.MobileMappings.getDefaultIcons;
 import static com.android.settingslib.mobile.MobileMappings.getIconKey;
 import static com.android.settingslib.mobile.MobileMappings.mapIconSets;
 
+import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.ContentObserver;
 import android.net.NetworkCapabilities;
+import android.net.Uri;
 import android.os.Handler;
+import android.os.UserHandle;
 import android.os.Looper;
+import android.provider.Settings;
 import android.provider.Settings.Global;
 import android.telephony.AccessNetworkConstants;
 import android.telephony.CellSignalStrength;
@@ -256,6 +261,9 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
         void observe() {
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.SHOW_FOURG_ICON), false,
+                    this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(
                     Settings.Secure.getUriFor(Settings.Secure.SHOW_COMBINED_STATUS_BAR_SIGNAL_ICONS), false,
                     this, UserHandle.USER_ALL);
             updateSettings();
@@ -270,6 +278,15 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
                 android.os.Process.killProcess(android.os.Process.myPid());
             }
         }
+
+
+        private void updateSettings() {
+            ContentResolver resolver = mContext.getContentResolver();
+            mConfig = Config.readConfig(mContext);
+            setConfiguration(mConfig);
+            notifyListeners();
+        }
+
     }
 
     public void setConfiguration(Config config) {

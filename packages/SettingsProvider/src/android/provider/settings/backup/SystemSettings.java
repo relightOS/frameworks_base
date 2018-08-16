@@ -88,5 +88,6 @@ public class SystemSettings {
         Settings.System.SHOW_BATTERY_PERCENT_INSIDE,
         Settings.System.OMNI_ADVANCED_REBOOT,
         Settings.System.KEYGAURD_MEDIA_ART,
+        Settings.System.LOCKSCREEN_BATTERY_INFO,
     };
 }

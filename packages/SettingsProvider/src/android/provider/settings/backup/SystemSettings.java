@@ -85,5 +85,6 @@ public class SystemSettings {
         Settings.System.ALARM_ALERT,
         Settings.System.NOTIFICATION_LIGHT_PULSE,
         Settings.System.STATUS_BAR_BATTERY_STYLE,
+        Settings.System.SHOW_BATTERY_PERCENT_INSIDE,
     };
 }

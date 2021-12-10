@@ -25,6 +25,7 @@ import static com.android.systemui.theme.ThemeOverlayApplier.OVERLAY_COLOR_BOTH;
 import static com.android.systemui.theme.ThemeOverlayApplier.OVERLAY_COLOR_INDEX;
 import static com.android.systemui.theme.ThemeOverlayApplier.OVERLAY_COLOR_SOURCE;
 import static com.android.systemui.theme.ThemeOverlayApplier.TIMESTAMP_FIELD;
+import android.os.SystemProperties;
 
 import android.annotation.Nullable;
 import android.app.ActivityThread;
@@ -69,6 +70,8 @@ import com.android.systemui.statusbar.FeatureFlags;
 import com.android.systemui.statusbar.policy.DeviceProvisionedController;
 import com.android.systemui.statusbar.policy.DeviceProvisionedController.DeviceProvisionedListener;
 import com.android.systemui.util.settings.SecureSettings;
+import com.android.systemui.statusbar.policy.ConfigurationController;
+import com.android.systemui.statusbar.policy.ConfigurationController.ConfigurationListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -130,12 +133,20 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
     private WallpaperColors mDeferredWallpaperColors;
     private int mDeferredWallpaperColorsFlags;
     private WakefulnessLifecycle mWakefulnessLifecycle;
+    private ConfigurationController mConfigurationController;
 
     // Defers changing themes until Setup Wizard is done.
     private boolean mDeferredThemeEvaluation;
     // Determines if we should ignore THEME_CUSTOMIZATION_OVERLAY_PACKAGES setting changes.
     private boolean mSkipSettingChange;
     final Context context = ActivityThread.currentApplication();
+
+    private final ConfigurationListener mConfigurationListener = new ConfigurationListener() {
+        @Override
+        public void onOverlayChanged() {
+            setColorProps();
+        }
+    };
 
     private final DeviceProvisionedListener mDeviceProvisionedListener =
             new DeviceProvisionedListener() {
@@ -273,7 +284,7 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
             SecureSettings secureSettings, WallpaperManager wallpaperManager,
             UserManager userManager, DeviceProvisionedController deviceProvisionedController,
             UserTracker userTracker, DumpManager dumpManager, FeatureFlags featureFlags,
-            WakefulnessLifecycle wakefulnessLifecycle) {
+            WakefulnessLifecycle wakefulnessLifecycle, ConfigurationController configurationController) {
         super(context);
 
         mIsMonetEnabled = featureFlags.isMonetEnabled();
@@ -288,6 +299,8 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
         mWallpaperManager = wallpaperManager;
         mUserTracker = userTracker;
         mWakefulnessLifecycle = wakefulnessLifecycle;
+        mConfigurationController = configurationController;
+        mConfigurationController.addCallback(mConfigurationListener);
         dumpManager.registerDumpable(TAG, this);
     }
 
@@ -371,6 +384,27 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
                 }
             }
         });
+        
+        // To set props without needing an overlay change, Usually the props are only set when you first change wallpaper i.e after overlay change.
+        // we wish to avoid this, call setColorProps at the start of service, this will set props on boot so by the time you first reboot,
+        // boot colors would already be there and bootanim would be colored.
+        setColorProps();
+    }
+
+    private void setColorProps(){
+        try {
+            SystemProperties.set("persist.bootanim.color1", String.valueOf(context.getResources().getColor(android.R.color.system_accent3_100)));
+            SystemProperties.set("persist.bootanim.color2", String.valueOf(context.getResources().getColor(android.R.color.system_accent1_300)));
+            SystemProperties.set("persist.bootanim.color3", String.valueOf(context.getResources().getColor(android.R.color.system_accent2_500)));
+            SystemProperties.set("persist.bootanim.color4", String.valueOf(context.getResources().getColor(android.R.color.system_accent1_100)));
+            /*Log.d(TAG, String.valueOf(context.getResources().getColor(android.R.color.system_neutral1_50)) + "BOOT COLOR");
+            Log.d(TAG, SystemProperties.get("persist.bootanim.color1"));
+            Log.d(TAG, SystemProperties.get("persist.bootanim.color2"));
+            Log.d(TAG, SystemProperties.get("persist.bootanim.color3"));
+            Log.d(TAG, SystemProperties.get("persist.bootanim.color4"));*/
+        } catch (RuntimeException unused) {
+            Log.d("Boot colors", "Failed to set props.");
+        }
     }
 
     private void reevaluateSystemTheme(boolean forceReload) {
@@ -379,7 +413,7 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
         final int accentCandidate;
         if (currentColors == null) {
             mainColor = Color.TRANSPARENT;
-            accentCandidate = Color.TRANSPARENT;
+            accentCandidate = Color.TRANSPARENT; 
         } else {
             mainColor = getNeutralColor(currentColors);
             accentCandidate = getAccentColor(currentColors);

@@ -1421,6 +1421,7 @@ void BootAnimation::drawTexturedQuad(float xStart, float yStart, float width, fl
 }
 
 void BootAnimation::initDynamicColors() {
+    SLOGI("%s", android::base::GetProperty("persist.bootanim.color1", "").c_str());
     for (int i = 0; i < DYNAMIC_COLOR_COUNT; i++) {
         parseColorDecimalString(
             android::base::GetProperty("persist.bootanim.color" + std::to_string(i + 1), ""),

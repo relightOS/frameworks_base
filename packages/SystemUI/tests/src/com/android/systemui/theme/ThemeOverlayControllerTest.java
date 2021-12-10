@@ -55,6 +55,7 @@ import com.android.systemui.dump.DumpManager;
 import com.android.systemui.keyguard.WakefulnessLifecycle;
 import com.android.systemui.settings.UserTracker;
 import com.android.systemui.statusbar.FeatureFlags;
+import com.android.systemui.statusbar.policy.ConfigurationController;
 import com.android.systemui.statusbar.policy.DeviceProvisionedController;
 import com.android.systemui.statusbar.policy.DeviceProvisionedController.DeviceProvisionedListener;
 import com.android.systemui.util.settings.SecureSettings;
@@ -103,6 +104,8 @@ public class ThemeOverlayControllerTest extends SysuiTestCase {
     private FeatureFlags mFeatureFlags;
     @Mock
     private WakefulnessLifecycle mWakefulnessLifecycle;
+    @Mock
+    private ConfigurationController mConfigurationController;
     @Captor
     private ArgumentCaptor<BroadcastReceiver> mBroadcastReceiver;
     @Captor
@@ -120,7 +123,7 @@ public class ThemeOverlayControllerTest extends SysuiTestCase {
         mThemeOverlayController = new ThemeOverlayController(null /* context */,
                 mBroadcastDispatcher, mBgHandler, mMainExecutor, mBgExecutor, mThemeOverlayApplier,
                 mSecureSettings, mWallpaperManager, mUserManager, mDeviceProvisionedController,
-                mUserTracker, mDumpManager, mFeatureFlags, mWakefulnessLifecycle) {
+                mUserTracker, mDumpManager, mFeatureFlags, mWakefulnessLifecycle, mConfigurationController) {
             @Nullable
             @Override
             protected FabricatedOverlay getOverlay(int color, int type) {
@@ -480,7 +483,7 @@ public class ThemeOverlayControllerTest extends SysuiTestCase {
         mThemeOverlayController = new ThemeOverlayController(null /* context */,
                 mBroadcastDispatcher, mBgHandler, executor, executor, mThemeOverlayApplier,
                 mSecureSettings, mWallpaperManager, mUserManager, mDeviceProvisionedController,
-                mUserTracker, mDumpManager, mFeatureFlags, mWakefulnessLifecycle) {
+                mUserTracker, mDumpManager, mFeatureFlags, mWakefulnessLifecycle, mConfigurationController) {
             @Nullable
             @Override
             protected FabricatedOverlay getOverlay(int color, int type) {
@@ -517,7 +520,7 @@ public class ThemeOverlayControllerTest extends SysuiTestCase {
         mThemeOverlayController = new ThemeOverlayController(null /* context */,
                 mBroadcastDispatcher, mBgHandler, executor, executor, mThemeOverlayApplier,
                 mSecureSettings, mWallpaperManager, mUserManager, mDeviceProvisionedController,
-                mUserTracker, mDumpManager, mFeatureFlags, mWakefulnessLifecycle) {
+                mUserTracker, mDumpManager, mFeatureFlags, mWakefulnessLifecycle, mConfigurationController) {
             @Nullable
             @Override
             protected FabricatedOverlay getOverlay(int color, int type) {

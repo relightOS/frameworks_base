@@ -244,6 +244,32 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
                 info, mDefaults, mCallback);
         mProviderModelBehavior = featureFlags.isCombinedStatusBarSignalIconsEnabled();
         mProviderModelSetting = featureFlags.isProviderModelSettingEnabled();
+	    Handler mHandler = new Handler();
+        SettingsObserver settingsObserver = new SettingsObserver(mHandler);
+        settingsObserver.observe();
+    }
+
+    class SettingsObserver extends ContentObserver {
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
+        void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(
+                    Settings.Secure.getUriFor(Settings.Secure.SHOW_COMBINED_STATUS_BAR_SIGNAL_ICONS), false,
+                    this, UserHandle.USER_ALL);
+            updateSettings();
+        }
+
+        /*
+         *  @hide
+         */
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.SHOW_COMBINED_STATUS_BAR_SIGNAL_ICONS))) {
+                android.os.Process.killProcess(android.os.Process.myPid());
+            }
+        }
     }
 
     public void setConfiguration(Config config) {

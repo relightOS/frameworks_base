@@ -9,6 +9,6 @@ public class InternetDialogUtil {
         if (context == null) {
             return false;
         }
-        return FeatureFlagUtils.isEnabled(context, FeatureFlagUtils.SETTINGS_PROVIDER_MODEL);
+        return true;
     }
 }

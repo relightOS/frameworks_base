@@ -110,6 +110,6 @@ public class FeatureFlags {
 
     /** static method for the system setting */
     public static boolean isProviderModelSettingEnabled(Context context) {
-        return FeatureFlagUtils.isEnabled(context, FeatureFlagUtils.SETTINGS_PROVIDER_MODEL);
+        return true;
     }
 }

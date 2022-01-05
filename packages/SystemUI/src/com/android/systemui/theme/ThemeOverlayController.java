@@ -34,6 +34,7 @@ import android.app.WallpaperManager;
 import android.app.WallpaperManager.OnColorsChangedListener;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.om.FabricatedOverlay;
@@ -136,6 +137,8 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
     private WakefulnessLifecycle mWakefulnessLifecycle;
     private ConfigurationController mConfigurationController;
 
+    private final Handler mHandler = new Handler();
+
     // Defers changing themes until Setup Wizard is done.
     private boolean mDeferredThemeEvaluation;
     // Determines if we should ignore THEME_CUSTOMIZATION_OVERLAY_PACKAGES setting changes.
@@ -182,6 +185,27 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
 
         handleWallpaperColors(wallpaperColors, which);
     };
+
+    private MonetSettingsObserver mMonetSettingsObserver = new MonetSettingsObserver(mHandler);
+
+    private class MonetSettingsObserver extends ContentObserver {
+        MonetSettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.System.getUriFor(Settings.System.MONET_CUSTOM_THEME), false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(Settings.System.MONET_CUSTOM_COLOR), false, this, UserHandle.USER_ALL);
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            if (uri.equals(Settings.System.getUriFor(Settings.System.MONET_CUSTOM_THEME)) || uri.equals(Settings.System.getUriFor(Settings.System.MONET_CUSTOM_COLOR))) {
+                reevaluateSystemTheme(true);;
+            }
+        }
+    }
 
     private int getLatestWallpaperType() {
         return mWallpaperManager.getWallpaperId(WallpaperManager.FLAG_LOCK)
@@ -303,6 +327,7 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
         mConfigurationController = configurationController;
         mConfigurationController.addCallback(mConfigurationListener);
         dumpManager.registerDumpable(TAG, this);
+        mMonetSettingsObserver.observe();
     }
 
     @Override

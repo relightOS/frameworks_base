@@ -20,11 +20,11 @@ import java.util.Map;
 
 public final class CategoryKey {
 
-    // Activities using this IA were supposed to show on homepage but however will now show up in Others page to aid categorization and icon/layout consistency.
-    public static final String CATEGORY_REROUTED_HOMEPAGE = "com.android.settings.category.ia.homepage";
+    // Activities in this category shows up in Settings homepage.
+    public static final String CATEGORY_HOMEPAGE = "com.android.settings.category.ia.homepage";
 
     // Activities in this category shows up in Settings homepage.
-    public static final String CATEGORY_HOMEPAGE = "com.android.settings.category.ia.radiant.homepage";
+    public static final String CATEGORY_RADIANT = "com.android.settings.category.ia.radiant.custs";
 
     // Top level category.
     public static final String CATEGORY_NETWORK = "com.android.settings.category.ia.wireless";

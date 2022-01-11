@@ -143,7 +143,8 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
     private boolean mDeferredThemeEvaluation;
     // Determines if we should ignore THEME_CUSTOMIZATION_OVERLAY_PACKAGES setting changes.
     private boolean mSkipSettingChange;
-    final Context context = ActivityThread.currentApplication();
+
+    ColorSchemeMain colorScheme;
 
     private final ConfigurationListener mConfigurationListener = new ConfigurationListener() {
         @Override
@@ -195,8 +196,8 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
 
         void observe() {
             ContentResolver resolver = mContext.getContentResolver();
-            resolver.registerContentObserver(Settings.System.getUriFor(Settings.System.MONET_CUSTOM_THEME), false, this, UserHandle.USER_ALL);
-            resolver.registerContentObserver(Settings.System.getUriFor(Settings.System.MONET_CUSTOM_COLOR), false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(Settings.System.MONET_CUSTOM_THEME), false, this, UserHandle.USER_CURRENT);
+            resolver.registerContentObserver(Settings.System.getUriFor(Settings.System.MONET_CUSTOM_COLOR), false, this, UserHandle.USER_CURRENT);
         }
 
         @Override
@@ -419,10 +420,10 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
 
     private void setColorProps(){
         try {
-            SystemProperties.set("persist.bootanim.color1", String.valueOf(context.getResources().getColor(android.R.color.system_accent3_100)));
-            SystemProperties.set("persist.bootanim.color2", String.valueOf(context.getResources().getColor(android.R.color.system_accent1_300)));
-            SystemProperties.set("persist.bootanim.color3", String.valueOf(context.getResources().getColor(android.R.color.system_accent2_500)));
-            SystemProperties.set("persist.bootanim.color4", String.valueOf(context.getResources().getColor(android.R.color.system_accent1_100)));
+            SystemProperties.set("persist.bootanim.color1", String.valueOf(mContext.getResources().getColor(android.R.color.system_accent3_100)));
+            SystemProperties.set("persist.bootanim.color2", String.valueOf(mContext.getResources().getColor(android.R.color.system_accent1_300)));
+            SystemProperties.set("persist.bootanim.color3", String.valueOf(mContext.getResources().getColor(android.R.color.system_accent2_500)));
+            SystemProperties.set("persist.bootanim.color4", String.valueOf(mContext.getResources().getColor(android.R.color.system_accent1_100)));
             /*Log.d(TAG, String.valueOf(context.getResources().getColor(android.R.color.system_neutral1_50)) + "BOOT COLOR");
             Log.d(TAG, SystemProperties.get("persist.bootanim.color1"));
             Log.d(TAG, SystemProperties.get("persist.bootanim.color2"));
@@ -486,7 +487,13 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
      * Given a color candidate, return an overlay definition.
      */
     protected @Nullable FabricatedOverlay getOverlay(int color, int type) {
-        ColorSchemeMain colorScheme = new ColorSchemeMain(context, color);
+        int customColor = Settings.System.getInt(mContext.getContentResolver(), Settings.System.MONET_CUSTOM_COLOR, 0);
+        boolean enabled = Settings.System.getInt(mContext.getContentResolver(), Settings.System.MONET_CUSTOM_THEME, 0) != 0;
+        if(enabled && customColor != 0)
+            colorScheme = new ColorSchemeMain(mContext, customColor);
+        else
+            colorScheme = new ColorSchemeMain(mContext, color);
+
         List<Integer> colorList = type == ACCENT
                 ? colorScheme.getAllAccentColors() : colorScheme.getAllNeutralColors();
         String name = type == ACCENT ? "accent" : "neutral";

@@ -5191,6 +5191,12 @@ public final class Settings {
         public static final String MONET_CUSTOM_COLOR = "monet_custom_color";
 
         /**
+         * Whether to always use small clock or not.
+         * @hide
+         */
+        public static final String LS_SMOL_CLOCK = "ls_smol_clock";
+
+        /**
          * IMPORTANT: If you add a new public settings you also have to add it to
          * PUBLIC_SETTINGS below. If the new setting is hidden you have to add
          * it to PRIVATE_SETTINGS below. Also add a validator that can validate

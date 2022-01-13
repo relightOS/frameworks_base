@@ -5191,6 +5191,12 @@ public final class Settings {
         public static final String MONET_CUSTOM_COLOR = "monet_custom_color";
 
         /**
+         * Whether to use plain monet theme or not
+         * @hide
+         */
+        public static final String MONET_PLAIN_THEME = "monet_plain_theme";
+
+        /**
          * Whether to always use small clock or not.
          * @hide
          */

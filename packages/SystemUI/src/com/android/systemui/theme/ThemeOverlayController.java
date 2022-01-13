@@ -198,13 +198,12 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(Settings.System.getUriFor(Settings.System.MONET_CUSTOM_THEME), false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(Settings.System.MONET_CUSTOM_COLOR), false, this, UserHandle.USER_CURRENT);
+            resolver.registerContentObserver(Settings.System.getUriFor(Settings.System.MONET_PLAIN_THEME), false, this, UserHandle.USER_CURRENT);
         }
 
         @Override
         public void onChange(boolean selfChange, Uri uri) {
-            if (uri.equals(Settings.System.getUriFor(Settings.System.MONET_CUSTOM_THEME)) || uri.equals(Settings.System.getUriFor(Settings.System.MONET_CUSTOM_COLOR))) {
-                reevaluateSystemTheme(true);;
-            }
+            reevaluateSystemTheme(true);;
         }
     }
 

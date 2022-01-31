@@ -42,7 +42,6 @@ import com.android.systemui.statusbar.phone.StatusBarIconController.TintedIconMa
 import com.android.systemui.statusbar.phone.StatusBarWindowView;
 import com.android.systemui.statusbar.phone.StatusIconContainer;
 import com.android.systemui.statusbar.policy.Clock;
-import com.android.systemui.statusbar.policy.VariableDateView;
 
 import java.util.List;
 
@@ -63,14 +62,12 @@ public class QuickStatusBarHeader extends FrameLayout {
     protected QuickQSPanel mHeaderQsPanel;
     private View mDatePrivacyView;
     private View mDateView;
-    // DateView next to clock. Visible on QQS
-    private VariableDateView mClockDateView;
     private View mSecurityHeaderView;
     private View mClockIconsView;
     private View mContainer;
 
     private View mQSCarriers;
-    private ViewGroup mClockContainer;
+    private float mViewAlpha = 1.0f;
     private Clock mClockView;
     private Space mDatePrivacySeparator;
     private View mClockIconsSeparator;
@@ -126,24 +123,18 @@ public class QuickStatusBarHeader extends FrameLayout {
         mIconContainer = findViewById(R.id.statusIcons);
         mPrivacyChip = findViewById(R.id.privacy_chip);
         mDateView = findViewById(R.id.date);
-        mClockDateView = findViewById(R.id.date_clock);
         mSecurityHeaderView = findViewById(R.id.header_text_container);
         mClockIconsSeparator = findViewById(R.id.separator);
         mRightLayout = findViewById(R.id.rightLayout);
         mDateContainer = findViewById(R.id.date_container);
         mPrivacyContainer = findViewById(R.id.privacy_container);
 
-        mClockContainer = findViewById(R.id.clock_container);
         mClockView = findViewById(R.id.clock);
         mDatePrivacySeparator = findViewById(R.id.space);
         // Tint for the battery icons are handled in setupHost()
         mBatteryRemainingIcon = findViewById(R.id.batteryRemainingIcon);
 
         updateResources();
-        Configuration config = mContext.getResources().getConfiguration();
-        setDatePrivacyContainersWidth(config.orientation == Configuration.ORIENTATION_LANDSCAPE);
-        setSecurityHeaderContainerVisibility(
-                config.orientation == Configuration.ORIENTATION_LANDSCAPE);
 
         // Don't need to worry about tuner settings for this icon
         mBatteryRemainingIcon.setIgnoreTunerUpdates(true);
@@ -186,7 +177,7 @@ public class QuickStatusBarHeader extends FrameLayout {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         if (mDatePrivacyView.getMeasuredHeight() != mTopViewMeasureHeight) {
             mTopViewMeasureHeight = mDatePrivacyView.getMeasuredHeight();
-            post(this::updateAnimators);
+            updateAnimators();
         }
     }
 
@@ -195,8 +186,6 @@ public class QuickStatusBarHeader extends FrameLayout {
         super.onConfigurationChanged(newConfig);
         updateResources();
         setDatePrivacyContainersWidth(newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE);
-        setSecurityHeaderContainerVisibility(
-                newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE);
     }
 
     @Override
@@ -215,10 +204,6 @@ public class QuickStatusBarHeader extends FrameLayout {
         lp.width = landscape ? WRAP_CONTENT : 0;
         lp.weight = landscape ? 0f : 1f;
         mPrivacyContainer.setLayoutParams(lp);
-    }
-
-    private void setSecurityHeaderContainerVisibility(boolean landscape) {
-        mSecurityHeaderView.setVisibility(landscape ? VISIBLE : GONE);
     }
 
     private void updateBatteryMode() {
@@ -277,25 +262,6 @@ public class QuickStatusBarHeader extends FrameLayout {
         updateBatteryMode();
         updateHeadersPadding();
         updateAnimators();
-
-        updateClockDatePadding();
-    }
-
-    private void updateClockDatePadding() {
-        int startPadding = mContext.getResources()
-                .getDimensionPixelSize(R.dimen.status_bar_left_clock_starting_padding);
-        int endPadding = mContext.getResources()
-                .getDimensionPixelSize(R.dimen.status_bar_left_clock_end_padding);
-        mClockView.setPaddingRelative(
-                startPadding,
-                mClockView.getPaddingTop(),
-                endPadding,
-                mClockView.getPaddingBottom()
-        );
-
-        MarginLayoutParams lp = (MarginLayoutParams) mClockDateView.getLayoutParams();
-        lp.setMarginStart(endPadding);
-        mClockDateView.setLayoutParams(lp);
     }
 
     private void updateAnimators() {
@@ -314,8 +280,7 @@ public class QuickStatusBarHeader extends FrameLayout {
         TouchAnimator.Builder builder = new TouchAnimator.Builder()
                 .addFloat(mSecurityHeaderView, "alpha", 0, 1)
                 // These views appear on expanding down
-                .addFloat(mDateView, "alpha", 0, 0, 1)
-                .addFloat(mClockDateView, "alpha", 1, 0, 0)
+                .addFloat(mClockView, "alpha", 0, 1)
                 .addFloat(mQSCarriers, "alpha", 0, 1)
                 .setListener(new TouchAnimator.ListenerAdapter() {
                     @Override
@@ -324,14 +289,10 @@ public class QuickStatusBarHeader extends FrameLayout {
                         if (!mIsSingleCarrier) {
                             mIconContainer.addIgnoredSlots(mRssiIgnoredSlots);
                         }
-                        // Make it gone so there's enough room for carrier names
-                        mClockDateView.setVisibility(View.GONE);
                     }
 
                     @Override
                     public void onAnimationStarted() {
-                        mClockDateView.setVisibility(View.VISIBLE);
-                        mClockDateView.setFreezeSwitching(true);
                         setSeparatorVisibility(false);
                         if (!mIsSingleCarrier) {
                             mIconContainer.addIgnoredSlots(mRssiIgnoredSlots);
@@ -341,8 +302,7 @@ public class QuickStatusBarHeader extends FrameLayout {
                     @Override
                     public void onAnimationAtStart() {
                         super.onAnimationAtStart();
-                        mClockDateView.setFreezeSwitching(false);
-                        mClockDateView.setVisibility(View.VISIBLE);
+
                         setSeparatorVisibility(mShowClockIconsSeparator);
                         // In QQS we never ignore RSSI.
                         mIconContainer.removeIgnoredSlots(mRssiIgnoredSlots);
@@ -475,11 +435,11 @@ public class QuickStatusBarHeader extends FrameLayout {
         mClockIconsSeparator.setVisibility(visible ? View.VISIBLE : View.GONE);
         mQSCarriers.setVisibility(visible ? View.GONE : View.VISIBLE);
 
-        LinearLayout.LayoutParams lp =
-                (LinearLayout.LayoutParams) mClockContainer.getLayoutParams();
+        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) mClockView.getLayoutParams();
+
         lp.width = visible ? 0 : WRAP_CONTENT;
         lp.weight = visible ? 1f : 0f;
-        mClockContainer.setLayoutParams(lp);
+        mClockView.setLayoutParams(lp);
 
         lp = (LinearLayout.LayoutParams) mRightLayout.getLayoutParams();
         lp.width = visible ? 0 : WRAP_CONTENT;

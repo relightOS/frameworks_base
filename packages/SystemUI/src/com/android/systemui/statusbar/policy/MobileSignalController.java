@@ -274,7 +274,7 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
          */
         @Override
         public void onChange(boolean selfChange, Uri uri) {
-            if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.SHOW_COMBINED_STATUS_BAR_SIGNAL_ICONS))) {
+            if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.SHOW_COMBINED_STATUS_BAR_SIGNAL_ICONS)) || uri.equals(Settings.System.getUriFor(Settings.System.SHOW_FOURG_ICON))) {
                 android.os.Process.killProcess(android.os.Process.myPid());
             }
         }

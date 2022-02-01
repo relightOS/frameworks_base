@@ -718,7 +718,7 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
 
     private boolean advancedRebootEnabled(Context context) {
         boolean advancedRebootEnabled = Settings.System.getIntForUser(context.getContentResolver(),
-                Settings.System.OMNI_ADVANCED_REBOOT, 0, UserHandle.USER_CURRENT) == 1;
+                Settings.System.OMNI_ADVANCED_REBOOT, 1, UserHandle.USER_CURRENT) == 1;
         return advancedRebootEnabled;
     }
 

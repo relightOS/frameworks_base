@@ -2,6 +2,7 @@
 <!--
 /*
 * Copyright 2022 Project Radiant
+* Copyright 2022 Relight
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -29,6 +30,6 @@
 
     <!-- Volume panel QS tile -->
     <string name="quick_settings_volume_panel_label">Volume panel</string>
-    <string name="screenrecord_skip_time_label">Reduce 3 second wait to 100ms</string>
+    <string name="screenrecord_skip_time_label">Reduce wait</string>
 
 </resources>
